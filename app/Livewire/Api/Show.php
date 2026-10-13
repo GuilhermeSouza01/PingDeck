@@ -4,6 +4,7 @@ namespace App\Livewire\Api;
 
 use App\Models\Api;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 class Show extends Component
@@ -12,7 +13,8 @@ class Show extends Component
 
     public function mount(Api $api): void
     {
-        // TODO(security): scope to authenticated user
+        Gate::authorize('view', $api);
+
         $this->api = $api;
     }
 
