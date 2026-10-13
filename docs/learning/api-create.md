@@ -31,3 +31,32 @@ a memória?" Resposta: é análise estática em nível de tipos rodando em paral
 sobre todo o diretório `app/`; cada worker carrega a AST e os tipos, então projetos
 maiores usam mais memória. Aumentar o limite (ou dividir em baseline/ignores)
 evita o crash sem desligar a checagem.
+
+## Passo 2: O Livewire Form object (`ApiForm`)
+
+**Conceito:** um "Form object" no Livewire é uma classe que agrupa os campos de um
+formulário num único objeto, em vez de espalhar várias propriedades públicas pelo
+componente. Ele guarda os valores (`$form->name`), as regras (`rules()`) e valida a
+si mesmo (`$form->validate()`). O componente apenas declara `public ApiForm $form;`.
+
+**O que mudou:**
+- `app/Livewire/Forms/ApiForm.php` — nova classe `ApiForm extends Livewire\Form`
+  com as 7 propriedades tipadas (`name`, `url`, `method`, `expected_status`,
+  `timeout`, `description`, `is_active`), o método `rules()` (required/url/enum e
+  intervalos coerentes com as colunas da migration) e `attributes()` que devolve só
+  os campos do modelo — **sem `user_id`**.
+
+**Por que assim:** um objeto dedicado mantém o componente enxuto e reaproveitável
+(dá para reusar o mesmo `ApiForm` numa tela de edição futura). A alternativa
+descartada foi declarar as 7 propriedades e um array `$rules` direto no `Index`:
+isso incha o componente e duplica regras quando surgir o formulário de edição.
+
+**Armadilha comum:** esquecer que, no Form object, as chaves de `rules()` **não**
+levam prefixo (`'name'`, e não `'form.name'`) — o Livewire prefixa automaticamente
+na hora de exibir os erros como `form.name`. E nunca colocar `user_id` no form:
+se estivesse lá, viraria um campo que o usuário poderia manipular.
+
+**Pergunta de entrevista:** "Por que usar um Form object em vez de propriedades
+soltas no componente Livewire?" Resposta: encapsulamento e reuso — dados, regras e
+validação ficam juntos e testáveis isoladamente; o componente vira um coordenador
+e evita duplicar regras entre criar e editar.
