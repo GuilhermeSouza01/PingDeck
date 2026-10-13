@@ -90,3 +90,34 @@ ainda sobrescreve qualquer `user_id` que viesse nos atributos (segunda camada).
 certo?" Resposta: nunca confiando em `user_id` vindo do request; derivando da
 identidade autenticada (`$user->apis()->create(...)` ou `auth()->id()`) e, para
 leitura, usando policy/global scope.
+
+## Passo 4: O modal MaryUI no componente `Index`
+
+**Conceito:** no Livewire, a comunicação front→back acontece por `wire:click` /
+`wire:submit`, que chamam métodos PHP públicos do componente. O modal do MaryUI
+(`<x-mary-modal wire:model="creatingApi">`) abre/fecha conforme uma propriedade
+pública booleana do Livewire — o Alpine "entangles" essa propriedade. Erros de um
+Form object aparecem sozinhos nos componentes MaryUI porque o nome do erro carrega
+o prefixo (`form.name`), que o input infere a partir do `wire:model`.
+
+**O que mudou:**
+- `app/Livewire/Api/Index.php` — propriedades `ApiForm $form` e `bool $creatingApi`;
+  métodos `openCreateModal()`, `createApi(CreateApi $action)` (injeção de dependência
+  pelo Livewire) e `methodOptions()`; usa o trait `Mary\Traits\Toast` para o feedback.
+- `resources/views/livewire/api/index.blade.php` — botão ligado a `openCreateModal`
+  e o `<x-mary-modal>` com `<x-mary-form wire:submit="createApi">`
+  (input/select/toggle/textarea) e as ações Cancel/Create.
+
+**Por que assim:** mantém o componente "magro" — ele só orquestra (valida, pega o
+usuário, delega para a action, dá feedback). Descartei criar um componente `Create`
+separado só para o modal: mais arquivos e mais estado para sincronizar; um modal no
+próprio `Index` é o padrão para CRUD simples.
+
+**Armadilha comum:** usar `wire:model.live` em todos os campos sem necessidade
+(cada tecla vira um request). Aqui o binding é "deferred" (padrão do Livewire 3+):
+os valores vão junto com o submit, que é exatamente quando queremos validar.
+
+**Pergunta de entrevista:** "Como erros de validação aparecem dentro de um modal
+Livewire?" Resposta: o Form object valida e o Livewire guarda os erros no error bag
+com prefixo (`form.name`); como o input MaryUI aponta para `wire:model="form.name"`,
+ele encontra o erro e o exibe inline. O modal só fecha no caminho de sucesso.

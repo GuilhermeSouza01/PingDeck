@@ -1,7 +1,7 @@
 <div>
     <div class="flex items-start justify-between">
         <x-mary-header title="APIs" subtitle="All registered endpoints being monitored by PingDeck." />
-        <x-mary-button class="btn-primary text-emerald-950" icon="o-plus">
+        <x-mary-button class="btn-primary text-emerald-950" icon="o-plus" wire:click="openCreateModal">
             {{ (__('Create API')) }}
         </x-mary-button>
     </div>
@@ -46,6 +46,30 @@
         </x-mary-table>
 
     </div>
+
+    {{-- CREATE API MODAL --}}
+    <x-mary-modal wire:model="creatingApi" title="Create API" subtitle="Register a new endpoint to monitor." separator>
+        <x-mary-form wire:submit="createApi" no-separator>
+            <x-mary-input label="Name" wire:model="form.name" icon="o-tag" required />
+
+            <x-mary-input label="URL" wire:model="form.url" icon="o-link" type="url" required />
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <x-mary-select label="Method" wire:model="form.method" :options="$methodOptions" />
+                <x-mary-input label="Expected status" wire:model="form.expected_status" type="number" />
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <x-mary-input label="Timeout (seconds)" wire:model="form.timeout" type="number" />
+                <x-mary-toggle label="Active" wire:model="form.is_active" right />
+            </div>
+
+            <x-mary-textarea label="Description" wire:model="form.description" rows="3" />
+
+            <x-slot:actions>
+                <x-mary-button label="Cancel" @click="$wire.creatingApi = false" />
+                <x-mary-button label="Create" class="btn-primary" type="submit" spinner="createApi" />
+            </x-slot:actions>
+        </x-mary-form>
+    </x-mary-modal>
 </div>
-
-
