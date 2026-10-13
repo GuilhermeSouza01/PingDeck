@@ -60,3 +60,33 @@ se estivesse lá, viraria um campo que o usuário poderia manipular.
 soltas no componente Livewire?" Resposta: encapsulamento e reuso — dados, regras e
 validação ficam juntos e testáveis isoladamente; o componente vira um coordenador
 e evita duplicar regras entre criar e editar.
+
+## Passo 3: A action `CreateApi` (e a relação `User::apis()`)
+
+**Conceito:** uma "action" é uma classe com uma única responsabilidade: executar um
+caso de uso (aqui, "criar um Api"). Em vez de o componente Livewire montar o
+`Api::create([...])` na mão, ele delega para `CreateApi`, que recebe o `User` e os
+atributos validados. Usamos a relação Eloquent `$user->apis()->create($attributes)`:
+chamar `create` numa relação HasMany preenche sozinho a foreign key (`user_id`) a
+partir do usuário-pai.
+
+**O que mudou:**
+- `app/Actions/Api/CreateApi.php` — método `handle(User $user, array $attributes): Api`
+  que salva via `$user->apis()->create(...)`.
+- `app/Models/User.php` — nova relação `apis(): HasMany` (não existia) com generics
+  para o PHPStan.
+
+**Por que assim:** receber o `User` explicitamente faz o `user_id` nunca vir do
+request e deixa a action testável sem depender do facade `Auth`. A alternativa
+descartada era `Api::create([...$data, 'user_id' => auth()->id()])` dentro do
+componente: mistura HTTP com persistência, dificulta o teste e deixa o `user_id`
+no mesmo array que os dados do usuário (mais fácil vazar um override por engano).
+
+**Armadilha comum:** achar que basta esconder o `user_id` do formulário. A defesa
+real é o código não ler `user_id` de input em lugar nenhum — e a relação HasMany
+ainda sobrescreve qualquer `user_id` que viesse nos atributos (segunda camada).
+
+**Pergunta de entrevista:** "Como garantir que um registro pertence ao usuário
+certo?" Resposta: nunca confiando em `user_id` vindo do request; derivando da
+identidade autenticada (`$user->apis()->create(...)` ou `auth()->id()`) e, para
+leitura, usando policy/global scope.
