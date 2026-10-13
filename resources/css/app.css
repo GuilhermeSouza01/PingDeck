@@ -74,15 +74,16 @@ select:focus[data-flux-control] {
 
 /** daisyUI */
 @plugin "daisyui" {
-    themes: light, dark, forest --default;
+    themes: light --default, dark --prefersdark, forest, emerald;
 }
 
-
+/* Dark theme variant support */
+@custom-variant dark (&:where(.dark, .dark *));
 
 
 @plugin "daisyui/theme" {
     name: "forest";
-    default: true;
+    default: false;
     prefersdark: true;
     color-scheme: "dark";
     --color-base-100: oklch(20.84% 0.008 17.911);
@@ -110,7 +111,7 @@ select:focus[data-flux-control] {
     --radius-box: 0.5rem;
     --size-selector: 0.25rem;
     --size-field: 0.25rem;
-    --border: 1px;
+    --border: 1.5px;
     --depth: 1;
     --noise: 0;
 }
