@@ -7,19 +7,33 @@
     </div>
     <div class="rounded-xl border border-base-300 bg-base-100">
 
-        {{-- TOOLBAR: busca + badges + filtro --}}
-        <div class="flex items-center justify-between gap-4 p-4">
-            <x-mary-input placeholder="Search by name or endpoint..." icon="o-magnifying-glass" class="max-w-sm" />
+        {{-- TOOLBAR: busca + filtros --}}
+        <div class="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+            <x-mary-input
+                placeholder="Search by name or endpoint..."
+                icon="o-magnifying-glass"
+                wire:model.live.debounce.300ms="search"
+                clearable
+                class="max-w-sm"
+            />
 
-            <div class="flex items-center gap-1">
-                <x-mary-badge value="All" class="badge-neutral" />
-                <x-mary-badge value="Online" class="badge-ghost" />
-                <x-mary-badge value="Slow" class="badge-ghost" />
-                <x-mary-badge value="Offline" class="badge-ghost" />
-                <x-mary-badge value="Paused" class="badge-ghost" />
+            <div class="flex items-center gap-2">
+                <x-mary-select
+                    placeholder="All methods"
+                    placeholder-value=""
+                    :options="$methodOptions"
+                    wire:model.live="method"
+                    class="w-40"
+                />
+
+                <x-mary-select
+                    placeholder="All statuses"
+                    placeholder-value=""
+                    :options="$statusOptions"
+                    wire:model.live="status"
+                    class="w-40"
+                />
             </div>
-
-            <x-mary-button icon="o-adjustments-horizontal" label="Filters" class="btn-ghost" />
         </div>
 
         {{-- DIVISOR --}}

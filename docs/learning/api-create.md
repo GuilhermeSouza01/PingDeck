@@ -121,3 +121,36 @@ os valores vão junto com o submit, que é exatamente quando queremos validar.
 Livewire?" Resposta: o Form object valida e o Livewire guarda os erros no error bag
 com prefixo (`form.name`); como o input MaryUI aponta para `wire:model="form.name"`,
 ele encontra o erro e o exibe inline. O modal só fecha no caminho de sucesso.
+
+## Passo 5: Busca e filtros (com paginação resetada)
+
+**Conceito:** `wire:model.live.debounce.300ms="search"` deixa o input reativo — a cada
+300ms após parar de digitar o Livewire manda o estado ao servidor e re-renderiza.
+`wire:model.live` num `<select>` dispara na troca. O trait `WithPagination`
+transforma `paginate()` em links; sempre que um filtro muda é preciso chamar
+`resetPage()`, senão você pode ficar numa página que deixou de existir (ex.: estava
+na página 4, filtra e sobram 2). E `whereHas('latestCheck', ...)` filtra monitores
+cujo **último check** tem o status escolhido — `latestCheck` é uma relação HasOne,
+então também serve para montar query.
+
+**O que mudou:**
+- `app/Livewire/Api/Index.php` — propriedades `$search`, `$status`, `$method`; hooks
+  `updatedSearch()`, `updatedStatus()`, `updatedMethod()` chamando `resetPage()`;
+  `statusOptions()`; e a query encadeia `when(...)` para busca (name/url LIKE),
+  método e status do último check, mantendo `with('latestCheck')`.
+- `resources/views/livewire/api/index.blade.php` — busca com debounce/clearable e
+  dois `<x-mary-select>` (All methods / All statuses) no lugar dos badges decorativos.
+
+**Por que assim:** `when()` deixa cada filtro opcional e legível, e o status via
+`whereHas('latestCheck')` filtra **no banco**, então a paginação continua correta.
+Descartei filtrar a coleção em PHP depois do `get()`: quebraria a paginação
+(pagina-se antes de filtrar) e traria dados à toa.
+
+**Armadilha comum:** esquecer o `resetPage()` ao trocar o filtro. Outra: usar
+`LIKE '%...%'` sem escapar `%`/`_` digitados pelo usuário — não é falha de segurança
+(a query é parametrizada), mas muda o significado da busca.
+
+**Pergunta de entrevista:** "Como implementar busca + filtro com paginação no
+Livewire sem quebrar o `paginate()`?" Resposta: filtrar na query do Eloquent
+(`when`/`whereHas`) antes do `paginate()`, tornar as propriedades reativas
+(`live`/`debounce`) e chamar `resetPage()` nos hooks `updatedX`.

@@ -4,6 +4,7 @@ namespace App\Livewire\Api;
 
 use App\Actions\Api\CreateApi;
 use App\ApiMethod;
+use App\CheckStatus;
 use App\Livewire\Forms\ApiForm;
 use App\Models\Api;
 use App\Models\User;
@@ -21,6 +22,12 @@ class Index extends Component
     public ApiForm $form;
 
     public bool $creatingApi = false;
+
+    public string $search = '';
+
+    public string $status = '';
+
+    public string $method = '';
 
     /**
      * @return array<int, array{key: string, label: string}>
@@ -47,6 +54,32 @@ class Index extends Component
             fn (ApiMethod $method): array => ['id' => $method->value, 'name' => $method->value],
             ApiMethod::cases(),
         );
+    }
+
+    /**
+     * @return array<int, array{id: string, name: string}>
+     */
+    public function statusOptions(): array
+    {
+        return array_map(
+            fn (CheckStatus $status): array => ['id' => $status->value, 'name' => $status->label()],
+            CheckStatus::cases(),
+        );
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMethod(): void
+    {
+        $this->resetPage();
     }
 
     public function openCreateModal(): void
@@ -81,8 +114,25 @@ class Index extends Component
         return view('livewire.api.index', [
             'headers' => $this->headers(),
             'methodOptions' => $this->methodOptions(),
+            'statusOptions' => $this->statusOptions(),
             // TODO(security): scope to authenticated user
-            'apis' => Api::query()->with('latestCheck')->paginate(5),
+            'apis' => Api::query()
+                ->with('latestCheck')
+                ->when(
+                    $this->search !== '',
+                    fn ($query) => $query->where(fn ($query) => $query
+                        ->where('name', 'like', "%{$this->search}%")
+                        ->orWhere('url', 'like', "%{$this->search}%"))
+                )
+                ->when($this->method !== '', fn ($query) => $query->where('method', $this->method))
+                ->when(
+                    $this->status !== '',
+                    fn ($query) => $query->whereHas(
+                        'latestCheck',
+                        fn ($query) => $query->where('status', $this->status)
+                    )
+                )
+                ->paginate(5),
         ]);
     }
 }
