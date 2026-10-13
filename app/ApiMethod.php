@@ -9,4 +9,14 @@ enum ApiMethod: string
     case PUT = 'PUT';
     case PATCH = 'PATCH';
     case DELETE = 'DELETE';
+
+    public function badgeColor(): string
+    {
+        return match ($this) {
+            self::GET => 'badge-info',
+            self::POST => 'badge-primary',
+            self::PUT, self::PATCH => 'badge-warning',
+            self::DELETE => 'badge-error',
+        };
+    }
 }

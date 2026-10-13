@@ -20,9 +20,9 @@ enum CheckStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::ONLINE => 'success',
-            self::OFFLINE => 'error',
-            self::TIMEOUT => 'warning',
+            self::ONLINE => 'badge-success',
+            self::OFFLINE => 'badge-error',
+            self::TIMEOUT => 'badge-warning',
         };
     }
 }
