@@ -154,3 +154,33 @@ Descartei filtrar a coleção em PHP depois do `get()`: quebraria a paginação
 Livewire sem quebrar o `paginate()`?" Resposta: filtrar na query do Eloquent
 (`when`/`whereHas`) antes do `paginate()`, tornar as propriedades reativas
 (`live`/`debounce`) e chamar `resetPage()` nos hooks `updatedX`.
+
+## Passo 6: Testes de feature
+
+**Conceito:** teste de feature exercita o caminho real (rota/componente → action →
+banco) com `RefreshDatabase` (banco limpo a cada teste). `Livewire::test(...)` sobe o
+componente em memória e permite `call()`, `set()` e asserções (`assertSee`,
+`assertHasErrors`, `assertSet`) sem navegador, enquanto `assertDatabaseHas` confirma a
+persistência.
+
+**O que mudou:** `tests/Feature/Api/IndexTest.php` com 9 testes:
+- guest é redirecionado ao login; usuário verificado vê o índice;
+- criação válida persiste com o `user_id` do autenticado e fecha o modal;
+- input inválido é rejeitado (5 campos) e nada é persistido;
+- `user_id` não pode ser sobrescrito — action chamada com `user_id` de outro usuário
+  mantém o dono original;
+- busca por nome/url; filtro de método; filtro de status pelo último check;
+- trocar filtro reseta a paginação (`paginators.page` volta a 1).
+
+**Por que assim:** testamos comportamento observável (o que o usuário vê e o que vai
+ao banco), não detalhes internos. O teste do `user_id` ataca a garantia de segurança
+onde ela é implementada (a relation), tentando burlá-la por um atributo extra.
+
+**Armadilha comum:** assertar texto que também aparece em outro lugar (ex.: nomes de
+método "GET"/"POST" nos `<option>`) — por isso os dados usam nomes únicos ("Healthy
+Endpoint"). Outra: esquecer `RefreshDatabase` e vazar estado entre testes.
+
+**Pergunta de entrevista:** "Como testar que um usuário não pode criar recurso em nome
+de outro?" Resposta: no nível da action/componente, passar um `user_id` de terceiro nos
+atributos e afirmar que o registro persiste com o dono autenticado — a foreign key vem
+da relation, não do input.
