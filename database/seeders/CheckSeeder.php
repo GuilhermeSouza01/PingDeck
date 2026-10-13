@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Api;
 use App\Models\Check;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CheckSeeder extends Seeder
