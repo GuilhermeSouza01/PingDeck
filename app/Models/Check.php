@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\CheckStatus;
+use Database\Factories\CheckFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,11 +13,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Check extends Model
 {
+    /** @use HasFactory<CheckFactory> */
     use HasFactory;
 
     protected $casts = [
         'status' => CheckStatus::class,
     ];
+
+    /**
+     * @return BelongsTo<Api, $this>
+     */
     public function api(): BelongsTo
     {
         return $this->belongsTo(Api::class);

@@ -3,6 +3,7 @@
 namespace App\Livewire\Api;
 
 use App\Models\Api;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class Show extends Component
@@ -14,7 +15,8 @@ class Show extends Component
         // TODO(security): scope to authenticated user
         $this->api = $api;
     }
-    public function render()
+
+    public function render(): View
     {
         return view('livewire.api.show');
     }

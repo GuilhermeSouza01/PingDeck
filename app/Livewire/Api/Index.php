@@ -3,12 +3,17 @@
 namespace App\Livewire\Api;
 
 use App\Models\Api;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
     use WithPagination;
+
+    /**
+     * @return array<int, array{key: string, label: string}>
+     */
     public function headers(): array
     {
         return [
@@ -21,7 +26,8 @@ class Index extends Component
 
         ];
     }
-    public function render()
+
+    public function render(): View
     {
         return view('livewire.api.index', [
             'headers' => $this->headers(),

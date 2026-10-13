@@ -19,7 +19,8 @@ class CheckFactory extends Factory
      */
     public function definition(): array
     {
-        $status = fake()->randomElement(CheckStatus::cases());
+        $status = collect(CheckStatus::cases())->random();
+
         return [
             'api_id' => Api::factory(),
 
