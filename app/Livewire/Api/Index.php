@@ -6,7 +6,6 @@ use App\Actions\Api\CreateApi;
 use App\ApiMethod;
 use App\CheckStatus;
 use App\Livewire\Forms\ApiForm;
-use App\Models\Api;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -94,13 +93,7 @@ class Index extends Component
     {
         $this->form->validate();
 
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            abort(403);
-        }
-
-        $action->handle($user, $this->form->attributes());
+        $action->handle($this->user(), $this->form->attributes());
 
         $this->creatingApi = false;
         $this->form->reset();
@@ -109,14 +102,24 @@ class Index extends Component
         $this->success(__('API created successfully.'));
     }
 
+    private function user(): User
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        return $user;
+    }
+
     public function render(): View
     {
         return view('livewire.api.index', [
             'headers' => $this->headers(),
             'methodOptions' => $this->methodOptions(),
             'statusOptions' => $this->statusOptions(),
-            // TODO(security): scope to authenticated user
-            'apis' => Api::query()
+            'apis' => $this->user()->apis()
                 ->with('latestCheck')
                 ->when(
                     $this->search !== '',
